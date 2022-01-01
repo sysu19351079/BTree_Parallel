@@ -34,7 +34,6 @@ int main(int nargs, char **args)
 	printf("tree_file   = %s\n", tree_file);
 
 	Result *table = new Result[n_pts_]; 
-
 	ifstream fp(data_file); 
 	string line;
 	int i=0;
@@ -49,18 +48,16 @@ int main(int nargs, char **args)
 		table[i].id_ = atoi(number.c_str());    
         i++;
     }
-	
 	fp.close();
 
 	timeval start_t;  
     timeval end_t;
 
 	gettimeofday(&start_t,NULL);
-		
 	BTree* trees_ = new BTree();
 	trees_->init(B_, tree_file);
 	//对这个函数进行并行
-	if (trees_->bulkload(n_pts_, table)) return 1;
+	if (trees_->bulkload_parallel(n_pts_, table, 4)) return 1;
 
 	delete[] table; table = NULL;
 

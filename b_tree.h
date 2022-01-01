@@ -6,7 +6,6 @@
 #include <cassert>
 #include <cmath>
 #include <cstring>
-#include <vector>
 #include <stdlib.h>
 #include <pthread.h>
 
@@ -72,8 +71,6 @@ protected:
 	void delete_root(); 			// delete root of b-tree
 };
 
-#endif // __B_TREE_H
-
 // input argument
 typedef struct{
 	int num_entries;	//number of entries that this worker should deal with
@@ -86,7 +83,10 @@ typedef struct{
 // output argument
 typedef struct{
 	int root;	//root block of subtree
-	std::vector<int> start;  //leftmost nodes in each layers
-	std::vector<int> end;	//rightmost nodes in each layers
+	int start[10];  //leftmost nodes in each layers
+	int end[10];	//rightmost nodes in each layers
 	int levels;				//level of root node
 }ret_arg;
+
+#endif // __B_TREE_H
+
