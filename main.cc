@@ -20,13 +20,14 @@ using namespace std;
 
 
 // -----------------------------------------------------------------------------
-int main(int nargs, char **args)
+int main(int argc, char **args)
 {    
-
+	int num_workers = atoi(args[1]);
+	printf("%d\n",num_workers);
 	char data_file[200];
 	char tree_file[200];
 	int  B_ = 512; // node size
-	int n_pts_ = 1000000;
+	int n_pts_ = atoi(args[2]);
 
 	strncpy(data_file, "./data/dataset.csv", sizeof(data_file));
 	strncpy(tree_file, "./result/B_tree", sizeof(tree_file));
@@ -57,7 +58,13 @@ int main(int nargs, char **args)
 	BTree* trees_ = new BTree();
 	trees_->init(B_, tree_file);
 	//对这个函数进行并行
-	if (trees_->bulkload_parallel(n_pts_, table, 8)) return 1;
+	if(num_workers == 0){
+		if(trees_->bulkload(n_pts_, table)) return 1;
+	}
+	else{
+		if (trees_->bulkload_parallel(n_pts_, table, num_workers)) return 1;
+	}
+	
 
 	delete[] table; table = NULL;
 
