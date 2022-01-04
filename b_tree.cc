@@ -241,6 +241,8 @@ static void* works(void* arg){
     BTree* tree = argument->tree;
     pthread_mutex_t* lock = argument->lock;
     ret_arg* ret = (ret_arg*)malloc(sizeof(ret_arg));   //returns of each thread
+	std::set <int> myblocks;
+	int device = end_entry / num_entries;
 
     BIndexNode *index_child   = NULL;
 	BIndexNode *index_prev_nd = NULL;
@@ -267,6 +269,7 @@ static void* works(void* arg){
             pthread_mutex_lock(lock);
 			leaf_act_nd->init(0, tree);
             pthread_mutex_unlock(lock);
+			myblocks.insert(leaf_act_nd->get_block());	//insert block
 
 			if (first_node) {
 				first_node  = false; // init <start_block>
@@ -305,18 +308,20 @@ static void* works(void* arg){
     int current_level    = 1;		// current level (leaf level is 0)
 	int last_start_block = start_block;	// build b-tree level by level
 	int last_end_block   = end_block;	// build b-tree level by level
-
+	
 	while (last_end_block > last_start_block) {
+		
 		first_node = true;
+
+
 		for (int i = last_start_block; i <= last_end_block; ++i) {
+			if(myblocks.find(i)==myblocks.end()) continue;
 			block = i;				// get <block>
 			if (current_level == 1) {
 				leaf_child = new BLeafNode();
                 pthread_mutex_lock(lock);
 				leaf_child->init_restore(tree, block);
-                pthread_mutex_unlock(lock);
 				key = leaf_child->get_key_of_node();
-				pthread_mutex_lock(lock);
 				delete leaf_child; leaf_child = NULL;
             	pthread_mutex_unlock(lock);
 				
@@ -325,9 +330,7 @@ static void* works(void* arg){
 				index_child = new BIndexNode();
                 pthread_mutex_lock(lock);
 				index_child->init_restore(tree, block);
-                pthread_mutex_unlock(lock);
 				key = index_child->get_key_of_node();
-				pthread_mutex_lock(lock);
 				delete index_child; index_child = NULL;
             	pthread_mutex_unlock(lock);
 				
@@ -338,7 +341,7 @@ static void* works(void* arg){
                 pthread_mutex_lock(lock);
 				index_act_nd->init(current_level, tree);
                 pthread_mutex_unlock(lock);
-
+				myblocks.insert(index_act_nd->get_block());
 				if (first_node) {
 					first_node = false;
 					start_block = index_act_nd->get_block();
@@ -378,8 +381,8 @@ static void* works(void* arg){
 		last_start_block = start_block;// update info
 		last_end_block = end_block;	// build b-tree of higher level
 		++current_level;
-		
 	}
+
     ret->levels = current_level;
 	ret->root = last_start_block;
 	pthread_mutex_lock(lock);

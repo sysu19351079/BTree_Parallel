@@ -57,7 +57,7 @@ int main(int nargs, char **args)
 	BTree* trees_ = new BTree();
 	trees_->init(B_, tree_file);
 	//对这个函数进行并行
-	if (trees_->bulkload_parallel(n_pts_, table, 4)) return 1;
+	if (trees_->bulkload_parallel(n_pts_, table, 8)) return 1;
 
 	delete[] table; table = NULL;
 

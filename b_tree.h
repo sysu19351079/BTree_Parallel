@@ -8,6 +8,7 @@
 #include <cstring>
 #include <stdlib.h>
 #include <pthread.h>
+#include <set>
 
 #include "def.h"
 #include "util.h"
