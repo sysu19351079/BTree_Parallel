@@ -33,6 +33,7 @@ void print_tree(BTree* trees) {
 	int num_entries = 0;
 
 	int first_son_block = -1;
+	// print the index nodes
 	cur_node = new BIndexNode();
 	cur_node->init_restore(trees, trees->root_);
 	while (cur_node->get_level() != 0) {
@@ -46,7 +47,7 @@ void print_tree(BTree* trees) {
 			fprintf(fp, "\tlevel: %d\tnum_entries: %d\n", cur_node->get_level(), cur_node->get_num_entries());
 			num_entries = cur_node->get_num_entries();
 			for (int i = 0; i < num_entries; i++) {
-				fprintf(fp, "\t\tkey: %d\tson: %d\n", cur_node->get_key(i), cur_node->get_son(i));
+				fprintf(fp, "\t\tkey: %d\tson: %d\n", (int)cur_node->get_key(i), cur_node->get_son(i));
 			}
 
 			// get first node in each level
@@ -57,12 +58,40 @@ void print_tree(BTree* trees) {
 			nxt_node = cur_node->get_right_sibling();
 			delete cur_node; cur_node = nxt_node;
 		}
-		if (first_son_block == 0) break;
+		if (first_son_block == 1) break;  // when meet with leaf node, break
 		cur_node = new BIndexNode();
 		cur_node->init_restore(trees, first_son_block);
 	}
 	if (cur_node) {
 		delete cur_node; cur_node = NULL;
+	}
+
+	// print the leaf nodes
+	BLeafNode *leaf_node = NULL;
+	BLeafNode *next_node = NULL;
+	int leaf_num_entries = 0;
+	int leaf_num_keys = 0;
+	leaf_node = new BLeafNode();
+	leaf_node->init_restore(trees, 1);
+	while (leaf_node) {
+		fprintf(fp, "Leaf Block %d\n", leaf_node->get_block());
+		fprintf(fp, "\tlevel: %d\tnum_keys: %d\tnum_entries: %d\n", leaf_node->get_level(), leaf_node->get_num_keys(), leaf_node->get_num_entries());
+		leaf_num_entries = leaf_node->get_num_entries();
+		leaf_num_keys = leaf_node->get_num_keys();
+		for (int i = 0; i < leaf_num_entries; i++) {
+			if (i%16 == 0) {
+				fprintf(fp, "\t\tentry_id: %d\tkey: %d\n", leaf_node->get_entry_id(i), (int)leaf_node->get_key(i/16));
+			}
+			else {
+				fprintf(fp, "\t\tentry_id: %d\n", leaf_node->get_entry_id(i));
+			}
+		}
+
+		next_node = leaf_node->get_right_sibling();
+		delete leaf_node; leaf_node = next_node;
+	}
+	if (leaf_node) {
+		delete leaf_node; leaf_node = NULL;
 	}
 
 	fclose(fp);
