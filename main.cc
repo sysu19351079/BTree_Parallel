@@ -18,12 +18,60 @@
 
 using namespace std;
 
+void print_tree(BTree* trees) {
+	char print_file[200];
+	strncpy(print_file, "./result/print_tree.txt", sizeof(print_file));
+	printf("print_file = %s\n", print_file);
+
+	FILE *fp = fopen(print_file, "w+");
+	fclose(fp);
+	fp = fopen(print_file, "a");
+
+	BIndexNode *cur_node = NULL;
+	BIndexNode *nxt_node = NULL;
+	bool first_node;
+	int num_entries = 0;
+
+	int first_son_block = -1;
+	cur_node = new BIndexNode();
+	cur_node->init_restore(trees, trees->root_);
+	while (cur_node->get_level() != 0) {
+		first_node = true;
+		while (cur_node) {
+			// print every index node in the tree
+			if (cur_node->get_block() == trees->root_) {
+				fprintf(fp, "Root: ");
+			}
+			fprintf(fp, "Block %d\n", cur_node->get_block());
+			fprintf(fp, "\tlevel: %d\tnum_entries: %d\n", cur_node->get_level(), cur_node->get_num_entries());
+			num_entries = cur_node->get_num_entries();
+			for (int i = 0; i < num_entries; i++) {
+				fprintf(fp, "\t\tkey: %d\tson: %d\n", cur_node->get_key(i), cur_node->get_son(i));
+			}
+
+			// get first node in each level
+			if (first_node) {
+				first_node = false;
+				first_son_block = cur_node->get_son(0);
+			}
+			nxt_node = cur_node->get_right_sibling();
+			delete cur_node; cur_node = nxt_node;
+		}
+		if (first_son_block == 0) break;
+		cur_node = new BIndexNode();
+		cur_node->init_restore(trees, first_son_block);
+	}
+	if (cur_node) {
+		delete cur_node; cur_node = NULL;
+	}
+
+	fclose(fp);
+}
 
 // -----------------------------------------------------------------------------
 int main(int argc, char **args)
 {    
 	int num_workers = atoi(args[1]);
-	printf("%d\n",num_workers);
 	char data_file[200];
 	char tree_file[200];
 	int  B_ = 512; // node size
@@ -65,7 +113,6 @@ int main(int argc, char **args)
 		if (trees_->bulkload_parallel(n_pts_, table, num_workers)) return 1;
 	}
 	
-
 	delete[] table; table = NULL;
 
 	gettimeofday(&end_t, NULL);
@@ -74,6 +121,7 @@ int main(int argc, char **args)
 						(end_t.tv_usec - start_t.tv_usec) / 1000000.0f;
 	printf("运行时间: %f  s\n", run_t1);
 	
+	print_tree(trees_);
 
 	return 0;
 }
