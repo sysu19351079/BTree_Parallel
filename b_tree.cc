@@ -498,10 +498,9 @@ int BTree::bulkload_parallel(
 	
     BIndexNode* root = new BIndexNode();
     root->init(levels, this);
-	
     for(int i = 0; i < num_workers; i++){
         BIndexNode* son = new BIndexNode();
-        son->init_restore(this, ra[i]->start[levels]);
+        son->init_restore(this, ra[i]->root);
         root->add_new_child(son->get_key_of_node(), son->get_block());
         delete son;
     }

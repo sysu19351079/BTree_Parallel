@@ -36,10 +36,10 @@ int ResultComp(						// compare function for qsort (ascending)
 
 
 
-int main()
+int main(int argv, char **args)
 {
     srand((int)time(NULL));     
-    int n = 10000000;  //表示点的个数，自己定义
+    int n = atoi(args[1]);  //表示点的个数，自己定义
     int range = 100000000;   //表示值的范围，自己定义
     Result *table = new Result[n];
     
